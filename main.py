@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-# from itertools import groupby
+import csv
 
 from tempoapiclient import client
 
@@ -21,12 +21,12 @@ def gen_date_dict(start_dt, end_dt):
 
 # Даты для которых берем данные
 date_from = "2021-01-11"
-date_to = "2021-01-15"
+date_to = "2021-01-17"
 # Подключение по API и получение данных
 tempo = client.Tempo(
     auth_token="67Zv2sVtRB9zv6Rz0jeWxFjO0ewZI9",
     base_url="https://api.tempo.io/core/3")
-
+#
 worklogs = tempo.get_worklogs(
    dateFrom=date_from,
    dateTo=date_to
@@ -51,6 +51,21 @@ for worklog in worklogs:
         work_data[name][date] = spent_time_s
 
 
+
+names_list = []
+
+with open('export-users.csv', newline='') as csvfile:
+    names = list(csv.reader(csvfile, delimiter=',', quotechar='|'))
+    names.pop(0)
+    for row in names:
+        names_list.append(row[1])
+
+for name in names_list:
+    if work_data.get(name, False):
+        pass
+    else:
+        work_data[name] = dates.copy()
+
 # Цикл для вывода результатов и перевода секунд в часы
 for user, dates in work_data.items():
     for date, time in dates.items():
@@ -58,22 +73,3 @@ for user, dates in work_data.items():
             print(user, date, str(timedelta(seconds=time)))
         else:
             print(user, date, time)
-
-
-
-
-# new_list = []
-# my_list = []
-#
-# for worklog in worklogs:
-#     name = worklog['author']['displayName']
-#     date = worklog['startDate']
-#     spent_time_s = worklog['timeSpentSeconds']
-#     my_list.append([name, date, spent_time_s])
-# sorted_list = sorted(my_list)
-#
-# for key, group in groupby(sorted_list, lambda nested_list: [nested_list[0], nested_list[1]]):
-#     group = list(group)
-#     new_list.append([key, group[0][1], sum(map(lambda x: x[2], group))])
-#
-# print(new_list)
